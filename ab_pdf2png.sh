@@ -13,6 +13,7 @@
 #
 # Requirements:
 #   ImageMagick 7  — brew install imagemagick
+#                    conda install -c conda-forge imagemagick
 # ---------------------------------------------------------------
 
 set -e
@@ -39,6 +40,7 @@ Options:
 
 Requirements:
   ImageMagick 7  — brew install imagemagick
+                   conda install -c conda-forge imagemagick
 
 Examples:
   ./ab_pdf2png.sh document.pdf
