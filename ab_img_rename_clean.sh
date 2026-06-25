@@ -13,14 +13,22 @@
 #   --recursive  Process subdirectories (walk tree)
 #
 # Usage:
-#   ./ab_img_rename_clean.sh
 #   ./ab_img_rename_clean.sh --dry-run
 #   ./ab_img_rename_clean.sh --recursive
 #   ./ab_img_rename_clean.sh --recursive --dry-run
+#   ./ab_img_rename_clean.sh [OPTIONS] FILE
 # ---------------------------------------------------------------
 
 DRYRUN=false
 RECURSIVE=false
+TARGET_FILE=""
+
+# --- Require at least one argument ---
+if [[ $# -eq 0 ]]; then
+    echo "Usage: ./ab_img_rename_clean.sh [OPTIONS] [FILE]"
+    echo "Try:   ./ab_img_rename_clean.sh --help"
+    exit 1
+fi
 
 # --- Parse arguments ---
 while [[ $# -gt 0 ]]; do
@@ -39,10 +47,11 @@ Options:
   --recursive   Process files inside subdirectories
 
 Examples:
-  ./ab_img_rename_clean.sh
   ./ab_img_rename_clean.sh --dry-run
   ./ab_img_rename_clean.sh --recursive
   ./ab_img_rename_clean.sh --recursive --dry-run
+  ./ab_img_rename_clean.sh "My Photo.JPG"
+  ./ab_img_rename_clean.sh --dry-run "My Photo.JPG"
 
 EOF
             exit 0
@@ -53,10 +62,13 @@ EOF
         --recursive)
             RECURSIVE=true
             ;;
-        *)
+        -*)
             echo "Unknown option: $1"
             echo "Try: ./ab_img_rename_clean.sh --help"
             exit 1
+            ;;
+        *)
+            TARGET_FILE="$1"
             ;;
     esac
     shift
@@ -84,6 +96,15 @@ rename_file() {
         fi
     fi
 }
+
+
+# -------------------------------------------------------
+# MAIN: single file passed as argument
+# -------------------------------------------------------
+if [[ -n "$TARGET_FILE" ]]; then
+    rename_file "$TARGET_FILE"
+    exit 0
+fi
 
 
 # -------------------------------------------------------
