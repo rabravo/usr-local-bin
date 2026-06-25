@@ -16,7 +16,9 @@
 #
 # Requirements:
 #   tiffinfo / tiffdump  — brew install libtiff
+#                          conda install -c conda-forge libtiff
 #   exiftool             — brew install exiftool
+#                          conda install -c conda-forge perl-image-exiftool
 # ---------------------------------------------------------------
 
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
@@ -36,7 +38,9 @@ Usage:
 
 Requirements:
   tiffinfo / tiffdump  — brew install libtiff
+                         conda install -c conda-forge libtiff
   exiftool             — brew install exiftool
+                         conda install -c conda-forge perl-image-exiftool
 
 Examples:
   ./ab_img_inspect_tiff.sh image.tif
