@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ---------------------------------------------------------------
-# rename_clean.sh
+# ab_img_rename_clean.sh
 #
 # Rename files by:
 #   • converting filenames to lowercase
@@ -13,10 +13,10 @@
 #   --recursive  Process subdirectories (walk tree)
 #
 # Usage:
-#   ./rename_clean.sh
-#   ./rename_clean.sh --dry-run
-#   ./rename_clean.sh --recursive
-#   ./rename_clean.sh --recursive --dry-run
+#   ./ab_img_rename_clean.sh
+#   ./ab_img_rename_clean.sh --dry-run
+#   ./ab_img_rename_clean.sh --recursive
+#   ./ab_img_rename_clean.sh --recursive --dry-run
 # ---------------------------------------------------------------
 
 DRYRUN=false
@@ -27,7 +27,7 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --help|-h)
             cat <<EOF
-rename_clean.sh
+ab_img_rename_clean.sh
 
 This script renames files by:
   - converting filenames to lowercase
@@ -39,10 +39,10 @@ Options:
   --recursive   Process files inside subdirectories
 
 Examples:
-  ./rename_clean.sh
-  ./rename_clean.sh --dry-run
-  ./rename_clean.sh --recursive
-  ./rename_clean.sh --recursive --dry-run
+  ./ab_img_rename_clean.sh
+  ./ab_img_rename_clean.sh --dry-run
+  ./ab_img_rename_clean.sh --recursive
+  ./ab_img_rename_clean.sh --recursive --dry-run
 
 EOF
             exit 0
@@ -55,7 +55,7 @@ EOF
             ;;
         *)
             echo "Unknown option: $1"
-            echo "Try: ./rename_clean.sh --help"
+            echo "Try: ./ab_img_rename_clean.sh --help"
             exit 1
             ;;
     esac
