@@ -1,10 +1,55 @@
 #!/usr/bin/env bash
+
+# ---------------------------------------------------------------
+# ab_pdf2png.sh
+#
+# Converts a PDF file to PNG format using ImageMagick 7.
+# Output PNG is saved in the same directory as the input PDF.
+# Skips conversion if the output PNG already exists.
+#
+# Usage:
+#   ./ab_pdf2png.sh <input.pdf>
+#   ./ab_pdf2png.sh --help
+#
+# Requirements:
+#   ImageMagick 7  — brew install imagemagick
+# ---------------------------------------------------------------
+
 set -e
 
 usage() {
-  echo "Usage: $0 <input.pdf>"
-  exit 1
+    echo "Usage: ./ab_pdf2png.sh <input.pdf>"
+    echo "Try:   ./ab_pdf2png.sh --help"
+    exit 1
 }
+
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    cat <<EOF
+ab_pdf2png.sh
+
+Converts a PDF file to PNG format using ImageMagick 7.
+The output PNG is saved alongside the input file with the same base name.
+Conversion is skipped if the output file already exists.
+
+Usage:
+  ./ab_pdf2png.sh <input.pdf>
+
+Options:
+  --help, -h    Show this help message
+
+Requirements:
+  ImageMagick 7  — brew install imagemagick
+
+Examples:
+  ./ab_pdf2png.sh document.pdf
+  ./ab_pdf2png.sh /path/to/report.pdf
+
+Output:
+  <input_basename>.png  (same directory as input)
+
+EOF
+    exit 0
+fi
 
 [ $# -eq 1 ] || usage
 

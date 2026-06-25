@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ---------------------------------------------------------------
-# ab_img_rename_clean.sh
+# ab_img_rename_file_convention.sh
 #
 # Rename files by:
 #   • converting filenames to lowercase
@@ -13,10 +13,10 @@
 #   --recursive  Process subdirectories (walk tree)
 #
 # Usage:
-#   ./ab_img_rename_clean.sh --dry-run
-#   ./ab_img_rename_clean.sh --recursive
-#   ./ab_img_rename_clean.sh --recursive --dry-run
-#   ./ab_img_rename_clean.sh [OPTIONS] FILE
+#   ./ab_img_rename_file_convention.sh --dry-run
+#   ./ab_img_rename_file_convention.sh --recursive
+#   ./ab_img_rename_file_convention.sh --recursive --dry-run
+#   ./ab_img_rename_file_convention.sh [OPTIONS] FILE
 # ---------------------------------------------------------------
 
 DRYRUN=false
@@ -25,8 +25,8 @@ TARGET_FILE=""
 
 # --- Require at least one argument ---
 if [[ $# -eq 0 ]]; then
-    echo "Usage: ./ab_img_rename_clean.sh [OPTIONS] [FILE]"
-    echo "Try:   ./ab_img_rename_clean.sh --help"
+    echo "Usage: ./ab_img_rename_file_convention.sh [OPTIONS] [FILE]"
+    echo "Try:   ./ab_img_rename_file_convention.sh --help"
     exit 1
 fi
 
@@ -35,7 +35,7 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --help|-h)
             cat <<EOF
-ab_img_rename_clean.sh
+ab_img_rename_file_convention.sh
 
 This script renames files by:
   - converting filenames to lowercase
@@ -47,11 +47,11 @@ Options:
   --recursive   Process files inside subdirectories
 
 Examples:
-  ./ab_img_rename_clean.sh --dry-run
-  ./ab_img_rename_clean.sh --recursive
-  ./ab_img_rename_clean.sh --recursive --dry-run
-  ./ab_img_rename_clean.sh "My Photo.JPG"
-  ./ab_img_rename_clean.sh --dry-run "My Photo.JPG"
+  ./ab_img_rename_file_convention.sh --dry-run
+  ./ab_img_rename_file_convention.sh --recursive
+  ./ab_img_rename_file_convention.sh --recursive --dry-run
+  ./ab_img_rename_file_convention.sh "My Photo.JPG"
+  ./ab_img_rename_file_convention.sh --dry-run "My Photo.JPG"
 
 EOF
             exit 0
@@ -64,7 +64,7 @@ EOF
             ;;
         -*)
             echo "Unknown option: $1"
-            echo "Try: ./ab_img_rename_clean.sh --help"
+            echo "Try: ./ab_img_rename_file_convention.sh --help"
             exit 1
             ;;
         *)

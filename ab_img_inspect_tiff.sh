@@ -1,10 +1,54 @@
 #!/bin/bash
-# inspect-tiff.sh
-# Bash-only TIFF inspector (no Python)
-# Uses: tiffinfo, tiffdump, identify (optional)
+
+# ---------------------------------------------------------------
+# ab_img_inspect_tiff.sh
+#
+# Bash-only TIFF inspector (no Python required).
+# Extracts and displays metadata from a TIFF file including:
+#   • Basic TIFF tags (tiffinfo)
+#   • Page/directory count (tiffdump)
+#   • Image dimensions and channel count
+#   • OME-XML metadata (if present, via exiftool)
+#
+# Usage:
+#   ./ab_img_inspect_tiff.sh <file.tif>
+#   ./ab_img_inspect_tiff.sh --help
+#
+# Requirements:
+#   tiffinfo / tiffdump  — brew install libtiff
+#   exiftool             — brew install exiftool
+# ---------------------------------------------------------------
+
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    cat <<EOF
+ab_img_inspect_tiff.sh
+
+Inspects a TIFF file and reports its metadata without requiring Python.
+
+What it reports:
+  - Full TIFF tag info (via tiffinfo)
+  - Number of pages/directories (via tiffdump)
+  - Image width, height, and number of channels
+  - OME-XML metadata block (if embedded, via exiftool)
+
+Usage:
+  ./ab_img_inspect_tiff.sh <file.tif>
+
+Requirements:
+  tiffinfo / tiffdump  — brew install libtiff
+  exiftool             — brew install exiftool
+
+Examples:
+  ./ab_img_inspect_tiff.sh image.tif
+  ./ab_img_inspect_tiff.sh /path/to/scan.tiff
+
+EOF
+    exit 0
+fi
 
 if [ -z "$1" ]; then
-    echo "Usage: inspect-tiff.sh <file.tif>"
+    echo "Usage: ./ab_img_inspect_tiff.sh <file.tif>"
+    echo "Try:   ./ab_img_inspect_tiff.sh --help"
     exit 1
 fi
 
