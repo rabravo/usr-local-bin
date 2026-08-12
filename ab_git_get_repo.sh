@@ -2,17 +2,18 @@
 # Clone a repository from the rabravo GitHub account.
 #
 # Usage:
-#   ab_git_get_repo.sh <project-name>
 #   ab_git_get_repo.sh <project-name> [target-directory]
+#   ab_git_get_repo.sh --ssh <project-name> [target-directory]
 
 set -euo pipefail
 
 GITHUB_USER="rabravo"
-BASE_URL="https://github.com/${GITHUB_USER}"
+HTTPS_BASE="https://github.com/${GITHUB_USER}"
+SSH_BASE="git@github.com:${GITHUB_USER}"
 
 show_help() {
 cat << EOF
-Usage: $(basename "$0") <project-name> [target-directory]
+Usage: $(basename "$0") [--ssh] <project-name> [target-directory]
 
 Clone a repository from the ${GITHUB_USER} GitHub account.
 
@@ -21,19 +22,27 @@ Arguments:
   target-directory   Optional local directory to clone into.
                      Defaults to the repository name.
 
+Options:
+  --ssh        Use SSH instead of HTTPS for cloning.
+  -h, --help   Show this help message and exit.
+
 Examples:
   $(basename "$0") my-project
+  $(basename "$0") --ssh my-project
   $(basename "$0") my-project ~/projects/my-project
-
-Options:
-  -h, --help   Show this help message and exit.
+  $(basename "$0") --ssh my-project ~/projects/my-project
 EOF
 }
 
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-  show_help
-  exit 0
-fi
+USE_SSH=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) show_help; exit 0 ;;
+    --ssh)     USE_SSH=true; shift ;;
+    *)         break ;;
+  esac
+done
 
 if [[ $# -lt 1 ]]; then
   echo "Error: project name is required."
@@ -42,8 +51,13 @@ if [[ $# -lt 1 ]]; then
 fi
 
 PROJECT="$1"
-CLONE_URL="${BASE_URL}/${PROJECT}.git"
 TARGET="${2:-}"
+
+if [[ "$USE_SSH" == true ]]; then
+  CLONE_URL="${SSH_BASE}/${PROJECT}.git"
+else
+  CLONE_URL="${HTTPS_BASE}/${PROJECT}.git"
+fi
 
 echo "Cloning: ${CLONE_URL}"
 if [[ -n "$TARGET" ]]; then
