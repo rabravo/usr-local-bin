@@ -5,14 +5,15 @@ set -euo pipefail
 usage() {
   cat <<EOF
 Usage:
-  $(basename "$0") <input.mp4> [fps]       Convert MP4 to z-stack
-  $(basename "$0") --extract <zstack.tif>  Extract all pages from z-stack
+  $(basename "$0") [--gray] <input.mp4> [fps]   Convert MP4 to z-stack
+  $(basename "$0") --extract <zstack.tif>        Extract all pages from z-stack
 
 Converts an MP4 into a multi-page .tif z-stack where individual frames are
 always recoverable. Optionally derives a single-page projection (max/mean/min).
 Can also run in reverse to extract all pages from an existing z-stack.
 
 Arguments (convert mode):
+  --gray      Output grayscale TIFs (recommended for analysis tools like cardio-tracker)
   input.mp4   Path to the source video file
   fps         Frames per second to sample (optional, prompted if omitted)
 
@@ -45,6 +46,7 @@ Output (extract mode):
 Examples:
   $(basename "$0") my_video.mp4 10
   $(basename "$0") my_video.mp4             # prompts for fps
+  $(basename "$0") --gray my_video.mp4 10   # grayscale output for analysis
   $(basename "$0") --extract my_video_tif/zstack.tif
 
   Input:  my_video.mp4
@@ -81,6 +83,12 @@ fi
 if [[ $# -lt 1 || "$1" == "--help" ]]; then
   usage
   exit 0
+fi
+
+gray=0
+if [[ "$1" == "--gray" ]]; then
+  gray=1
+  shift
 fi
 
 if [[ "$1" == "--extract" ]]; then
@@ -131,14 +139,23 @@ mkdir -p "$outdir"
 echo ""
 if [[ "$projection" == "f" || "$projection" == "F" ]]; then
   echo "Extracting individual frames..."
-  ffmpeg -i "$input" -vf "fps=${fps}" "${outdir}/frame_%04d.tif"
+  if [[ "$gray" -eq 1 ]]; then
+    ffmpeg -i "$input" -vf "fps=${fps}" -pix_fmt gray "${outdir}/frame_%04d.tif"
+  else
+    ffmpeg -i "$input" -vf "fps=${fps}" "${outdir}/frame_%04d.tif"
+  fi
   echo "Done. Output in ${outdir}/"
   exit 0
 fi
 
 echo "Building z-stack..."
-ffmpeg -i "$input" -vf "fps=${fps}" -f image2pipe -vcodec ppm - \
-  | magick - -adjoin "${outdir}/zstack.tif"
+if [[ "$gray" -eq 1 ]]; then
+  ffmpeg -i "$input" -vf "fps=${fps}" -f image2pipe -vcodec ppm - \
+    | magick - -colorspace Gray -adjoin "${outdir}/zstack.tif"
+else
+  ffmpeg -i "$input" -vf "fps=${fps}" -f image2pipe -vcodec ppm - \
+    | magick - -adjoin "${outdir}/zstack.tif"
+fi
 echo "Saved to ${outdir}/zstack.tif"
 
 case "$projection" in
