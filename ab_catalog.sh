@@ -113,7 +113,8 @@ desc_body=$(printf '%s' "$description" \
 # Extract everything after "Prerequisite(s):" from the same description text.
 prereq=$(printf '%s' "$description" \
     | grep -o 'Prerequisite(s):.*' \
-    | sed 's/Prerequisite(s): *//')
+    | sed 's/Prerequisite(s): *//' \
+    || true)
 
 # ── Plain text output ──────────────────────────────────────────────────────────
 if [[ "$HTML_MODE" == false ]]; then
