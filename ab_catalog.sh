@@ -3,13 +3,32 @@
 # Docs: coursedog-api-docs.html  (compare with digarc-api-docs.html for old API)
 #
 # Usage:
-#   ./catalog.sh "CSI 3450"           # plain text output
-#   ./catalog.sh "CSI 3450" --html    # generates doc_catalog.html
+#   ./ab_atalog.sh "CSI 3450"           # plain text output
+#   ./ab_catalog.sh "CSI 3450" --html    # generates doc_catalog.html
 set -euo pipefail
 
-if [[ $# -lt 1 ]]; then
-    echo "Usage: ./catalog.sh \"CSI 3450\" [--html [credits] [delivery]]"
-    exit 1
+usage() {
+    cat <<'EOF'
+Usage:
+  ab_catalog.sh "SUBJ CODE"           Plain text output
+  ab_catalog.sh "SUBJ CODE" --html    Generate doc_catalog.html
+
+Arguments:
+  "SUBJ CODE"   Course identifier, e.g. "CSI 3450" (case-insensitive)
+
+Options:
+  --html        Emit an HTML table (doc_catalog.html) instead of plain text
+  --help        Show this help message and exit
+
+Examples:
+  ab_catalog.sh "CSI 3450"
+  ab_catalog.sh "mth 1441" --html
+EOF
+}
+
+if [[ $# -lt 1 || "${1}" == "--help" || "${1}" == "-h" ]]; then
+    usage
+    [[ "${1-}" == "--help" || "${1-}" == "-h" ]] && exit 0 || exit 1
 fi
 
 # Normalize input to uppercase and split into prefix + code ("CSI 3450" → CSI, 3450)
