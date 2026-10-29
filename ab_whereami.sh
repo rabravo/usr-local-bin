@@ -1,21 +1,30 @@
 #!/bin/bash
-# Determine the current working directory
 CURRENT_DIR=$(pwd)
 
-# Define your Apache root and domain
+# Apache document root and its domain
 WEB_ROOT="/var/www/html"
 DOMAIN="https://angelbravo.cloud"
 
-# Verify we’re under the web root
+# Optional override: set this if hostname -f doesn’t match Apache’s ServerName
+SERVER_NAME_OVERRIDE=""
+
+# userdir public_html root for the current user
+USER_PUBLIC_HTML="${HOME}/public_html"
+
 if [[ $CURRENT_DIR == $WEB_ROOT* ]]; then
-    # Remove the web root prefix
     RELATIVE_PATH=${CURRENT_DIR#$WEB_ROOT}
+    echo "${DOMAIN}${RELATIVE_PATH}"
 
-    # Construct full URL
-    FULL_URL="${DOMAIN}${RELATIVE_PATH}"
+elif [[ $CURRENT_DIR == $USER_PUBLIC_HTML* ]]; then
+    if [[ -n $SERVER_NAME_OVERRIDE ]]; then
+        SERVER_NAME="$SERVER_NAME_OVERRIDE"
+    else
+        SERVER_NAME=$(hostname -f 2>/dev/null || hostname)
+    fi
+    RELATIVE_PATH=${CURRENT_DIR#$USER_PUBLIC_HTML}
+    echo "http://${SERVER_NAME}/~${USER}${RELATIVE_PATH}"
 
-    echo "$FULL_URL"
 else
-    echo "Error: You are not inside $WEB_ROOT"
+    echo "Error: You are not inside $WEB_ROOT or $USER_PUBLIC_HTML"
     exit 1
 fi
