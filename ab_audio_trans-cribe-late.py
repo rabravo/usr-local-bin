@@ -11,6 +11,7 @@ from pathlib import Path
 
 import torch
 import whisper
+from deep_translator import GoogleTranslator, MyMemoryTranslator
 from tqdm import tqdm
 from whisper.tokenizer import LANGUAGES
 
@@ -104,18 +105,36 @@ def write_text(audio_path: Path, segments: list, label: str) -> None:
 def ask_mode() -> int:
     print()
     print("What would you like to generate?")
-    print("  1) Transcription in original language  (text)")
-    print("  2) English translation                 (text)")
-    print("  3) Both — original + translation       (HTML)")
+    print("  1) Transcription in original language        (text)")
+    print("  2) English translation                       (text)")
+    print("  3) Both — original + English translation     (HTML)")
+    print("  4) Spanish translation                       (text)")
+    print("  5) Both — original + Spanish translation     (HTML)")
+    print("  0) Exit")
     print()
     while True:
-        choice = input("Choice [1-3]: ").strip()
-        if choice in ("1", "2", "3"):
+        choice = input("Choice [0-5]: ").strip()
+        if choice == "0":
+            sys.exit("Aborted.")
+        if choice in ("1", "2", "3", "4", "5"):
             return int(choice)
-        print("Please enter 1, 2, or 3.")
+        print("Please enter 0, 1, 2, 3, 4, or 5.")
 
 
-def transcribe(audio_path: Path, model_name: str, language: str | None, mode: int) -> None:
+def translate_segments_to_spanish(segments: list, engine: str = "mymemory") -> list:
+    if engine == "google":
+        translator = GoogleTranslator(source="auto", target="es")
+    else:
+        translator = MyMemoryTranslator(source="en-US", target="es-ES")
+    result = []
+    for seg in segments:
+        translated = translator.translate(seg["text"].strip()) or seg["text"].strip()
+        result.append({**seg, "text": translated})
+        time.sleep(0.3)
+    return result
+
+
+def transcribe(audio_path: Path, model_name: str, language: str | None, mode: int, engine: str = "mymemory") -> None:
     MODEL_DIR.mkdir(exist_ok=True)
     print(f"Loading model '{model_name}'...", file=sys.stderr)
     model = whisper.load_model(model_name, download_root=str(MODEL_DIR))
@@ -128,16 +147,29 @@ def transcribe(audio_path: Path, model_name: str, language: str | None, mode: in
         orig_segments = run_whisper(model, audio_path, "transcribe", language, duration, "Pass 1/2: Transcribing")
         trans_segments = run_whisper(model, audio_path, "translate",  language, duration, "Pass 2/2: Translating ")
         write_text(audio_path, orig_segments, "transcription")
-        write_text(audio_path, trans_segments, "translation")
-        write_html(audio_path, orig_segments, trans_segments, language)
+        write_text(audio_path, trans_segments, "translation_en")
+        write_html(audio_path, orig_segments, trans_segments, language, target_lang="English")
     elif mode == 1:
         segments = run_whisper(model, audio_path, "transcribe", language, duration, "Transcribing")
         print_segments(segments)
         write_text(audio_path, segments, "transcription")
-    else:
-        segments = run_whisper(model, audio_path, "translate", language, duration, "Translating")
+    elif mode == 2:
+        segments = run_whisper(model, audio_path, "translate", language, duration, "Translating to English")
         print_segments(segments)
-        write_text(audio_path, segments, "translation")
+        write_text(audio_path, segments, "translation_en")
+    elif mode == 4:
+        orig_segments = run_whisper(model, audio_path, "transcribe", language, duration, "Transcribing")
+        print(f"Translating {len(orig_segments)} segments to Spanish...", file=sys.stderr)
+        es_segments = translate_segments_to_spanish(orig_segments, engine)
+        print_segments(es_segments)
+        write_text(audio_path, es_segments, "translation_es")
+    elif mode == 5:
+        orig_segments = run_whisper(model, audio_path, "transcribe", language, duration, "Transcribing")
+        print(f"Translating {len(orig_segments)} segments to Spanish...", file=sys.stderr)
+        es_segments = translate_segments_to_spanish(orig_segments, engine)
+        write_text(audio_path, orig_segments, "transcription")
+        write_text(audio_path, es_segments, "translation_es")
+        write_html(audio_path, orig_segments, es_segments, language, target_lang="Spanish")
 
 
 def best_translation(orig_seg: dict, trans_segs: list) -> str | None:
@@ -153,7 +185,7 @@ def best_translation(orig_seg: dict, trans_segs: list) -> str | None:
     return best_text if best_overlap >= 0.5 else None
 
 
-def write_html(audio_path: Path, orig: list, trans: list | None, language: str | None) -> None:
+def write_html(audio_path: Path, orig: list, trans: list | None, language: str | None, target_lang: str = "English") -> None:
     src_lang = lang_name(language) if language else "Original"
     bilingual = trans is not None
 
@@ -183,7 +215,7 @@ def write_html(audio_path: Path, orig: list, trans: list | None, language: str |
           <td class="orig" colspan="2">{original_text}</td>
         </tr>""")
 
-    translation_header = '<th>English</th>' if bilingual else ''
+    translation_header = f'<th>{target_lang}</th>' if bilingual else ''
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -224,7 +256,7 @@ def write_html(audio_path: Path, orig: list, trans: list | None, language: str |
 </head>
 <body>
   <h1>{audio_path.name}</h1>
-  <p class="meta">Source language: {src_lang}{" · Translation: English" if bilingual else ""}</p>
+  <p class="meta">Source language: {src_lang}{f" · Translation: {target_lang}" if bilingual else ""}</p>
   <table>
     <thead>
       <tr>
@@ -265,8 +297,10 @@ examples:
 
 modes (chosen interactively):
   1  Transcription in original language → stdout + <stem>_transcription.txt
-  2  English translation                → stdout + <stem>_translation.txt
-  3  Both (original + translation)      → <stem>_transcription.txt + <stem>_translation.txt + <stem>.html
+  2  English translation                → stdout + <stem>_translation_en.txt
+  3  Both (original + English)          → <stem>_transcription.txt + <stem>_translation_en.txt + <stem>.html
+  4  Spanish translation                → stdout + <stem>_translation_es.txt
+  5  Both (original + Spanish)          → <stem>_transcription.txt + <stem>_translation_es.txt + <stem>.html
 
   all output files are written to the current working directory.
 
@@ -302,6 +336,12 @@ model sizes (--model):
         default=None,
         help="Source language code, e.g. 'ja' Japanese, 'it' Italian, 'fr' French. Auto-detected if omitted.",
     )
+    parser.add_argument(
+        "--translator",
+        default="mymemory",
+        choices=["mymemory", "google"],
+        help="Translation engine for Spanish output (default: mymemory)",
+    )
     args = parser.parse_args()
 
     if args.audio:
@@ -318,7 +358,7 @@ model sizes (--model):
         audio_path = download_youtube_audio(url)
 
     mode = ask_mode()
-    transcribe(audio_path, args.model, args.language, mode)
+    transcribe(audio_path, args.model, args.language, mode, args.translator)
 
 
 if __name__ == "__main__":
